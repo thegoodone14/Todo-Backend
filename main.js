@@ -8,7 +8,7 @@ import taskRoutes from './routes/taskRoutes.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.DB_PORT || 3001;
+const PORT = process.env.PORT || 3001;
 
 app.use(express.json()); // Middleware pour traiter les requêtes JSON
 app.use(cors());
