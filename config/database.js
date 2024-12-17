@@ -1,19 +1,24 @@
-import mysql from "mysql2"
-import dotenv from "dotenv";
+import pkg from 'pg';
+import fs from 'fs';
+import dotenv from 'dotenv';
 
-dotenv.config(); // Charge les variables d'environnement
+dotenv.config();
 
-const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+const { Pool } = pkg;
+
+const pool = new Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+  ssl: {
+    ca: fs.readFileSync('/etc/secrets/root.crt'), 
+  },
 });
 
-// Connexion à la base de données
-db.connect(function(err) {
-    if(err)throw err
-    console.log("Parfaitement connecté")
-});
+pool.connect()
+  .then(() => console.log('Connecté à CockroachDB Cloud'))
+  .catch(err => console.error('Erreur de connexion à la base :', err));
 
-export default db;
+export default pool;
