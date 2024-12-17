@@ -15,6 +15,10 @@ app.use(cors());
 // Ajouter un message de confirmation lorsque le serveur démarre
 console.log("Démarrage du serveur...");
 
+app.get('/', (req, res) => {
+    res.send('API fonctionnelle et connectée à CockroachDB !');
+  });
+
 app.use("/auth", authRoutes); // Routes pour l'authentification
 app.use("/api/lists", listRoutes); // Routes pour les listes
 app.use('/api/lists', taskRoutes);
