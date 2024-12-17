@@ -7,6 +7,8 @@ import taskRoutes from './routes/taskRoutes.js';
 
 dotenv.config();
 
+const jwtSecret = process.env.JWT_SECRET;
+console.log("JWT_SECRET chargé :", jwtSecret);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
