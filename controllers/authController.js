@@ -23,6 +23,7 @@ export const register = (req, res) => {
 };
 
 export const login = (req, res) => {
+    console.log("Requête reçue :", req.body);
     const { Mail, Password } = req.body;
 
     // Vérifier si l'utilisateur existe
