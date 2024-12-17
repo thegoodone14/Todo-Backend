@@ -10,9 +10,15 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+app.use(cors({
+    origin: ['http://localhost:3000', 'https://votre-frontend-url.com'], // Autorisez votre frontend local et déployé
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Méthodes autorisées
+    credentials: true // Si vous utilisez des cookies ou des headers auth
+  }));
+
 app.use(express.json()); // Middleware pour traiter les requêtes JSON
-app.use(cors());
-// Ajouter un message de confirmation lorsque le serveur démarre
+
+  // Ajouter un message de confirmation lorsque le serveur démarre
 console.log("Démarrage du serveur...");
 
 app.get('/', (req, res) => {
