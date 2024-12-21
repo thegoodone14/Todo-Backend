@@ -14,8 +14,10 @@ const PORT = process.env.PORT || 3001;
 
 // Dans votre fichier principal (main.js ou app.js)
 app.use(cors({
-  origin: 'http://localhost:3000', // Autorise les requêtes depuis votre frontend
-  credentials: true
+  origin: ['http://localhost:3000', 'https://votre-frontend-url.com'], // Ajoutez l'URL de votre frontend déployé
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json()); // Middleware pour traiter les requêtes JSON
