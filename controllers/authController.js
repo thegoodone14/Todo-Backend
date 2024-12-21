@@ -10,7 +10,7 @@ export const register = (req, res) => {
     const hashedPassword = bcrypt.hashSync(Password, salt);
 
     db.query(
-        "INSERT INTO users (ID_User, Pseudo, Mail, Password, isAdmin) VALUES (UUID(), ?, ?, ?, ?)",
+        "INSERT INTO users (ID_User, Pseudo, Mail, Password, isAdmin) VALUES (gen_random_uuid(), $1, $2, $3, $4)",
         [Pseudo, Mail, hashedPassword, isAdmin || 0],
         (err) => {
             if (err) {
