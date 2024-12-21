@@ -12,11 +12,11 @@ console.log("JWT_SECRET chargé :", jwtSecret);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Dans votre fichier principal (main.js ou app.js)
 app.use(cors({
-    origin: ['http://localhost:3000', 'https://votre-frontend-url.com'], // Autorisez votre frontend local et déployé
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Méthodes autorisées
-    credentials: true // Si vous utilisez des cookies ou des headers auth
-  }));
+  origin: 'http://localhost:3000', // Autorise les requêtes depuis votre frontend
+  credentials: true
+}));
 
 app.use(express.json()); // Middleware pour traiter les requêtes JSON
 

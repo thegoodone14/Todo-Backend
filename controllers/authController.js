@@ -26,20 +26,41 @@ export const login = (req, res) => {
     console.log("Requête reçue :", req.body);
     const { Mail, Password } = req.body;
 
-    // Vérifier si l'utilisateur existe
-    db.query("SELECT * FROM users WHERE Mail = ?", [Mail], (err, results) => {
-        if (err) return res.status(500).json({ error: "Erreur de connexion" });
-        if (results.length === 0) return res.status(404).json({ error: "Utilisateur non trouvé" });
+    if (!Mail || !Password) {
+        console.log("Champs manquants:", { Mail, Password });
+        return res.status(400).json({ error: "Mail et mot de passe requis" });
+    }
 
-        const user = results[0];
+    // Modification de la requête pour respecter la casse
+    db.query('SELECT * FROM users WHERE "Mail" = $1', [Mail], (err, results) => {
+        if (err) {
+            console.error("Erreur DB:", err);
+            return res.status(500).json({ error: "Erreur de connexion", details: err.message });
+        }
+        
+        if (!results.rows || results.rows.length === 0) {
+            console.log("Utilisateur non trouvé pour:", Mail);
+            return res.status(404).json({ error: "Utilisateur non trouvé" });
+        }
 
-        // Vérification du mot de passe
-        const isPasswordValid = bcrypt.compareSync(Password, user.Password);
-        if (!isPasswordValid) return res.status(401).json({ error: "Mot de passe incorrect" });
+        const user = results.rows[0];
+        console.log("Utilisateur trouvé:", { id: user.ID_User, mail: user.Mail });
 
-        // Création du token JWT
-        const token = jwt.sign({ ID_User: user.ID_User }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        try {
+            const isPasswordValid = bcrypt.compareSync(Password, user.Password);
+            console.log("Vérification mot de passe:", isPasswordValid);
+            
+            if (!isPasswordValid) {
+                return res.status(401).json({ error: "Mot de passe incorrect" });
+            }
 
-        res.status(200).json({ message: "Connexion réussie", token });
+            const token = jwt.sign({ ID_User: user.ID_User }, process.env.JWT_SECRET, { expiresIn: "1h" });
+            console.log("Token généré avec succès");
+
+            res.status(200).json({ message: "Connexion réussie", token });
+        } catch (error) {
+            console.error("Erreur bcrypt:", error);
+            return res.status(500).json({ error: "Erreur lors de la vérification du mot de passe" });
+        }
     });
 };
