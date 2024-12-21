@@ -3,18 +3,38 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 export const register = (req, res) => {
-    console.log(req.body); // Affiche le contenu de req.body pour vérifier les données
-    const { Pseudo, Mail, Password, isAdmin } = req.body;
+    console.log(req.body);
+    const { Pseudo, Mail, Password } = req.body;
+
+    // Validation des champs requis
+    if (!Pseudo || !Mail || !Password) {
+        return res.status(400).json({ error: "Tous les champs sont requis" });
+    }
+
+    // Validation basique du format email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(Mail)) {
+        return res.status(400).json({ error: "Format d'email invalide" });
+    }
+
+    // Validation du mot de passe (minimum 6 caractères)
+    if (Password.length < 6) {
+        return res.status(400).json({ error: "Le mot de passe doit contenir au moins 6 caractères" });
+    }
 
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(Password, salt);
 
     db.query(
-        "INSERT INTO users (ID_User, Pseudo, Mail, Password, isAdmin) VALUES (gen_random_uuid(), $1, $2, $3, $4)",
-        [Pseudo, Mail, hashedPassword, isAdmin || 0],
+        'INSERT INTO users ("ID_User", "Pseudo", "Mail", "Password", "isAdmin") VALUES (gen_random_uuid(), $1, $2, $3, $4)',
+        [Pseudo, Mail, hashedPassword, false],
         (err) => {
             if (err) {
-                console.error("Erreur MySQL : ", err); // Affiche l'erreur dans la console
+                console.error("Erreur PostgreSQL : ", err);
+                // Gestion spécifique de l'erreur de doublon d'email
+                if (err.code === '23505' && err.constraint === 'users_mail_key') {
+                    return res.status(409).json({ error: "Cet email est déjà utilisé" });
+                }
                 return res.status(500).json({ error: `Erreur lors de l'inscription: ${err.message}` });
             }
             res.status(201).json({ message: "Utilisateur créé avec succès" });
