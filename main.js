@@ -12,24 +12,23 @@ console.log("JWT_SECRET chargé :", jwtSecret);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Dans votre fichier principal (main.js ou app.js)
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://votre-frontend-url.com'], // Ajoutez l'URL de votre frontend déployé
+  origin: ['http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json()); // Middleware pour traiter les requêtes JSON
+app.use(express.json());
 
-  // Ajouter un message de confirmation lorsque le serveur démarre
 console.log("Démarrage du serveur...");
 
 app.get('/', (req, res) => {
     res.send('API fonctionnelle et connectée à CockroachDB !');
-  });
+});
 
-app.use("/api/auth", authRoutes); // Routes pour l'authentification
-app.use("/api/lists", listRoutes); // Routes pour les listes
-app.use('/api/lists', taskRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/list", listRoutes); // Changé de lists à list
+app.use('/api/list', taskRoutes); // Changé de lists à list pour être cohérent avec le frontend
+
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
