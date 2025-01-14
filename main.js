@@ -12,21 +12,30 @@ console.log("JWT_SECRET chargé :", jwtSecret);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors({
-  origin: ['http://localhost:3000', 'https://todo-frontend-bay-nu.vercel.app'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  exposedHeaders: ['Access-Control-Allow-Origin']
-}));
+// Configuration CORS
+const corsOptions = {
+    origin: [
+        'http://localhost:3000',
+        'https://todo-frontend-bay-nu.vercel.app'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Access-Control-Allow-Origin']
+};
 
-// Middleware pour ajouter les headers CORS à chaque réponse
+app.use(cors(corsOptions));
+
+// Middleware pour les en-têtes CORS personnalisés
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://todo-frontend-bay-nu.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  next();
+    const origin = req.headers.origin;
+    if (corsOptions.origin.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    next();
 });
 
 app.use(express.json());
@@ -38,7 +47,7 @@ app.get('/', (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/list", listRoutes); // Changé de lists à list
-app.use('/api/list', taskRoutes); // Changé de lists à list pour être cohérent avec le frontend
+app.use("/api/list", listRoutes);
+app.use('/api/list', taskRoutes);
 
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
