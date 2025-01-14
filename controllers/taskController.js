@@ -1,11 +1,10 @@
 import db from "../config/database.js";
 
 export const addTaskToUniqueList = async (req, res) => {
-    const { Description, isDone } = req.body;
+    const { Description, isDone, priority = 'MEDIUM', dueDate = null } = req.body;
     const { ID_User } = req.user;
 
     try {
-        // Utilisation de guillemets doubles pour les noms de colonnes et de tables
         const listResult = await db.query(
             'SELECT "ID_List" FROM "list" WHERE "ID_User" = $1',
             [ID_User]
@@ -18,8 +17,8 @@ export const addTaskToUniqueList = async (req, res) => {
         const ID_List = listResult.rows[0].ID_List;
 
         await db.query(
-            'INSERT INTO "task" ("Description", "isDone", "ID_List") VALUES ($1, $2, $3)',
-            [Description, isDone || false, ID_List]
+            'INSERT INTO "task" ("Description", "isDone", "ID_List", "priority", "dueDate") VALUES ($1, $2, $3, $4, $5)',
+            [Description, isDone || false, ID_List, priority, dueDate]
         );
 
         res.status(201).json({ message: "Tâche ajoutée avec succès" });
@@ -31,18 +30,36 @@ export const addTaskToUniqueList = async (req, res) => {
 
 export const getTasksByListId = async (req, res) => {
     const { ID_List } = req.params;
+    const { priority, isDone, search, sortBy = 'dueDate' } = req.query;
 
     if (!ID_List) {
         return res.status(400).json({ error: "ID_List est requis" });
     }
 
     try {
-        const result = await db.query(
-            'SELECT * FROM "task" WHERE "ID_List" = $1',
-            [ID_List]
-        );
+        let query = 'SELECT * FROM "task" WHERE "ID_List" = $1';
+        let params = [ID_List];
+        let paramCount = 1;
 
-        console.log("Tâches récupérées :", result.rows);
+        if (priority) {
+            query += ` AND "priority" = $${++paramCount}`;
+            params.push(priority);
+        }
+
+        if (isDone !== undefined) {
+            query += ` AND "isDone" = $${++paramCount}`;
+            params.push(isDone === 'true');
+        }
+
+        if (search) {
+            query += ` AND "Description" ILIKE $${++paramCount}`;
+            params.push(`%${search}%`);
+        }
+
+        // Ajout du tri
+        query += ` ORDER BY "${sortBy}" ASC`;
+
+        const result = await db.query(query, params);
         res.status(200).json(result.rows);
     } catch (error) {
         console.error("Erreur SQL :", error);
@@ -53,8 +70,6 @@ export const getTasksByListId = async (req, res) => {
 export const toggleTaskStatus = async (req, res) => {
     const { Id_Task } = req.params;
     const { isDone } = req.body;
-
-    console.log("Id_Task :", Id_Task, "isDone :", isDone);
 
     if (!Id_Task || typeof isDone !== 'boolean') {
         return res.status(400).json({ error: "Id_Task et isDone sont requis" });
@@ -70,6 +85,27 @@ export const toggleTaskStatus = async (req, res) => {
     } catch (error) {
         console.error("Erreur SQL :", error);
         res.status(500).json({ error: "Erreur lors de la mise à jour de la tâche" });
+    }
+};
+
+export const updateTaskPriority = async (req, res) => {
+    const { Id_Task } = req.params;
+    const { priority } = req.body;
+
+    if (!Id_Task || !['LOW', 'MEDIUM', 'HIGH'].includes(priority)) {
+        return res.status(400).json({ error: "Id_Task et priority valide sont requis" });
+    }
+
+    try {
+        await db.query(
+            'UPDATE "task" SET "priority" = $1 WHERE "ID_Task" = $2',
+            [priority, Id_Task]
+        );
+
+        res.status(200).json({ message: "Priorité de la tâche mise à jour avec succès" });
+    } catch (error) {
+        console.error("Erreur SQL :", error);
+        res.status(500).json({ error: "Erreur lors de la mise à jour de la priorité" });
     }
 };
 

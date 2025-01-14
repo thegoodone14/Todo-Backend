@@ -1,13 +1,25 @@
 import express from 'express';
-import { getTasksByListId, addTaskToUniqueList, toggleTaskStatus, deleteTask } from '../controllers/taskController.js';
+import { addTaskToUniqueList, getTasksByListId, toggleTaskStatus, deleteTask, updateTaskPriority } from '../controllers/taskController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Routes avec chemins standardisés
-router.get('/:ID_List/tasks', authenticateToken, getTasksByListId);  // Enlevé le préfixe /list
-router.post('/tasks', authenticateToken, addTaskToUniqueList);
-router.put('/tasks/:Id_Task/status', authenticateToken, toggleTaskStatus);
-router.delete('/tasks/:ID_Task', authenticateToken, deleteTask);
+// Routes protégées par authentification
+router.use(authenticateToken);
+
+// Ajouter une tâche
+router.post('/tasks', addTaskToUniqueList);
+
+// Obtenir toutes les tâches d'une liste avec filtres et recherche
+router.get('/:ID_List/tasks', getTasksByListId);
+
+// Mettre à jour le statut d'une tâche
+router.put('/tasks/:Id_Task/status', toggleTaskStatus);
+
+// Mettre à jour la priorité d'une tâche
+router.put('/tasks/:Id_Task/priority', updateTaskPriority);
+
+// Supprimer une tâche
+router.delete('/tasks/:ID_Task', deleteTask);
 
 export default router;
