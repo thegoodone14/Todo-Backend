@@ -12,13 +12,31 @@ console.log("JWT_SECRET chargé :", jwtSecret);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Configuration CORS mise à jour
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://todo-frontend-bay-nu.vercel.app'],
+  origin: [
+    'http://localhost:3000',
+    'https://todo-frontend-bay-nu.vercel.app'
+  ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Correction de la syntaxe ici
   allowedHeaders: ['Content-Type', 'Authorization'],
   exposedHeaders: ['Access-Control-Allow-Origin']
 }));
+
+// Ajout de headers personnalisés pour tous les endpoints
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://todo-frontend-bay-nu.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Gérer la requête OPTIONS
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 app.use(express.json());
 
